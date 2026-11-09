@@ -51,7 +51,8 @@ body{
 .opt[aria-pressed="true"]{border-color:var(--pen);background:var(--chip);box-shadow:inset 0 0 0 1px var(--pen)}
 .opt .ic{font-size:34px;line-height:1.1}
 .opt .nm{font-weight:600;font-size:14px}
-.ages{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ages{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+@media (max-width:860px){.ages{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:640px){.ages{grid-template-columns:repeat(2,1fr)}}
 .ages .opt{align-items:flex-start;text-align:left;padding:14px 16px}
 .ages .big{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1}
@@ -110,6 +111,16 @@ body{
 .sh-b{flex:1;min-height:0;display:flex;flex-direction:column;gap:3mm}
 .sh-f{display:flex;justify-content:space-between;font-size:3mm;color:#9aa1b8;border-top:.3mm solid #e5e9f3;padding-top:1.8mm;margin-top:2mm}
 .em{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;line-height:1;display:inline-block}
+.tp-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;align-content:space-evenly;justify-items:center;gap:4mm}
+.tp-cell{display:flex;flex-direction:column;align-items:center;gap:2mm}
+.tp-w{font-family:"Grandstander","Comic Sans MS",sans-serif;font-weight:700;font-size:8mm;color:#2f52d0}
+.tp-dot{width:20mm;height:20mm;border-radius:50%;border:.7mm dashed #2f52d0}
+.tp-match{flex:1;display:grid;grid-template-columns:1fr 1fr;column-gap:50mm;align-content:space-evenly}
+.tp-side{display:flex;align-items:center;justify-content:center;gap:5mm}
+.tp-pt{width:4.5mm;height:4.5mm;border-radius:50%;background:#1f2433;flex:none}
+.tp-model{display:grid;place-items:center;width:34mm;height:34mm;border:.8mm solid #2f52d0;border-radius:4mm}
+.tp-rings{flex:1;display:grid;grid-template-columns:repeat(3,1fr);align-content:space-evenly;justify-items:center;gap:5mm}
+.tp-ring{width:42mm;height:42mm;border-radius:50%;border:2.4mm solid}
 .stack{flex:1;display:flex;flex-direction:column;justify-content:space-evenly;gap:2mm}
 .ln{display:flex;align-items:center;gap:4mm;padding:2mm 0;border-bottom:.3mm dashed #d3d9e8}
 .ln:last-child{border-bottom:0}
@@ -354,6 +365,7 @@ const parseCounters=s=>s.trim().split(/\s+/).map(x=>{const[a,p,e]=x.split('|');r
 for(const k in TH){const t=TH[k];t.id=k;t.pics=parseItems(t.items);t.words=t.words?parseItems(t.words):t.pics;t.cnt=parseCounters(t.counters)}
 
 const AGES=[
+ {id:'1-2',lvl:0,label:'1–2 ans',sc:'Tout-petits · avant l’école'},
  {id:'3-4',lvl:1,label:'3–4 ans',sc:'Petite & moyenne section'},
  {id:'5-6',lvl:2,label:'5–6 ans',sc:'Grande section · CP'},
  {id:'7-8',lvl:3,label:'7–8 ans',sc:'CE1 · CE2'},
@@ -667,6 +679,67 @@ fractions:{l:'Fractions',lv:[0,0,0,2],cat:'m',fn({r}){
 redaction:{l:'Rédaction',lv:[0,0,0,1],cat:'l',fn({r,words,theme}){
   const ws=r.sample(words,5);
   return{c:`Écris une petite histoire de 6 à 10 lignes : « ${r.pick(theme.story)} » Utilise au moins trois de ces mots :`,h:`<div class="chips2">${ws.map(w=>`<span class="wbox">${w.w}</span>`).join('')}</div><div class="rl"></div><div class="frame" style="flex:none;height:48mm"></div>`}}},
+
+/* ---- Tout-petits (1–2 ans) : uniquement au niveau 0 ---- */
+imagier:{l:'Mon imagier',lv:[0,0,0,0],lv0:3,cat:'l',fn({r,pics}){
+  const cap=w=>w.charAt(0).toUpperCase()+w.slice(1);
+  const h=r.sample(pics,6).map(it=>`<div class="tp-cell">${em(it.e,36)}<span class="tp-w">${cap(it.w)}</span></div>`).join('');
+  return{c:'Montrez chaque image à votre enfant et dites son nom ensemble. Puis collez une gommette sur son image préférée.',h:`<div class="tp-grid">${h}</div>`}}},
+
+colorie:{l:'Je colorie',lv:[0,0,0,0],lv0:3,cat:'a',fn({r}){
+  const ART={'étoile':'l\'étoile','maison':'la maison','poisson':'le poisson','bateau':'le bateau','diamant':'le diamant','fusée':'la fusée','sapin':'le sapin','cœur':'le cœur'};
+  const S=r.pick(SHAPES),pts=S.p.map(q=>q.map(v=>v.toFixed(1)).join(',')).join(' ');
+  return{c:`Colorie ${ART[S.n]} avec tes gros crayons. Pas grave si tu dépasses !`,h:`<div class="svgc"><svg viewBox="-4 -4 108 108" style="width:170mm;height:170mm;max-width:100%"><polygon points="${pts}" fill="none" stroke="#1f2433" stroke-width="2.4" stroke-linejoin="round"/></svg></div>`}}},
+
+gommettes:{l:'Gommettes',lv:[0,0,0,0],lv0:2,cat:'a',fn({r,pics}){
+  const ART={'étoile':'l\'étoile','maison':'la maison','poisson':'le poisson','bateau':'le bateau','diamant':'le diamant','fusée':'la fusée','sapin':'le sapin','cœur':'le cœur'};
+  const inside=(p,x,y)=>{let c=false;for(let i=0,j=p.length-1;i<p.length;j=i++){const[xi,yi]=p[i],[xj,yj]=p[j];if((yi>y)!=(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)c=!c}return c};
+  const dseg=(x,y,[ax,ay],[bx,by])=>{const dx=bx-ax,dy=by-ay,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/(dx*dx+dy*dy)));return Math.hypot(x-ax-t*dx,y-ay-t*dy)};
+  if(r.f()<.6){for(const S of r.shuffle(SHAPES)){const rad=5,c=[];
+      for(let y=6;y<=94;y+=13)for(let x=7;x<=93;x+=13){if(!inside(S.p,x,y))continue;let m=1e9;S.p.forEach((q,i)=>m=Math.min(m,dseg(x,y,q,S.p[(i+1)%S.p.length])));if(m>rad+1.5)c.push([x,y])}
+      if(c.length<4||c.length>18)continue;
+      const pts=S.p.map(q=>q.map(v=>v.toFixed(1)).join(',')).join(' ');
+      return{c:`Décore ${ART[S.n]} : colle une gommette dans chaque rond.`,h:`<div class="svgc"><svg viewBox="-4 -4 108 108" style="width:170mm;height:170mm;max-width:100%"><polygon points="${pts}" fill="none" stroke="#1f2433" stroke-width="1.8" stroke-linejoin="round"/>${c.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${rad}" fill="none" stroke="#2f52d0" stroke-width=".9" stroke-dasharray="2 1.4"/>`).join('')}</svg></div>`}}}
+  let h='';for(const it of r.sample(pics,4))h+=`<div class="ln spread">${em(it.e,26)}${'<span class="tp-dot"></span>'.repeat(3)}</div>`;
+  return{c:'À côté de chaque image, colle une gommette dans chaque rond.',h:stack(h)}}},
+
+chemin:{l:'Suis le chemin',lv:[0,0,0,0],lv0:3,cat:'l',fn({r,pics}){
+  const wave=()=>{let d='M4 20';for(let x=4;x<=116;x+=2)d+=` L${x} ${(20-10*Math.sin((x-4)/112*4*Math.PI)).toFixed(1)}`;return d};
+  const zig=()=>{let d='M4 28';for(let i=1;i<=8;i++)d+=` L${4+i*14} ${i%2?10:28}`;return d};
+  const pont=()=>{let d='M4 30';for(let i=0;i<4;i++)d+=` Q${4+i*28+14} -2 ${4+(i+1)*28} 30`;return d};
+  const kinds=['M4 20 H116'].concat(r.shuffle([wave(),zig(),pont()]));
+  const h=kinds.map(d=>{const[a,b]=r.sample(pics,2);return`<div class="ln" style="gap:2mm">${em(a.e,20)}<svg viewBox="0 0 120 40" style="flex:1;min-width:0;height:36mm"><path d="${d}" fill="none" stroke="#e6ebf6" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#1f2433" stroke-width="1.5" stroke-dasharray="3 2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>${em(b.e,20)}</div>`}).join('');
+  return{c:'Suis chaque chemin avec ton doigt, puis avec un gros crayon.',h:stack(h)}}},
+
+ombres:{l:'Les ombres',lv:[0,0,0,0],lv0:2,cat:'a',fn({r,pics}){
+  const its=r.sample(pics.filter(p=>!/^\d+$/.test(p.e)),3),sh=r.shuffle(its);
+  const dot='<span class="tp-pt"></span>';
+  const h=its.map((it,i)=>`<div class="tp-side">${em(it.e,32)}${dot}</div><div class="tp-side">${dot}${em(sh[i].e,32).replace('style="','style="filter:brightness(0);opacity:.8;')}</div>`).join('');
+  return{c:'Relie chaque image à son ombre.',h:`<div class="tp-match">${h}</div>`}}},
+
+pareil:{l:'Trouve le même',lv:[0,0,0,0],lv0:2,cat:'a',fn({r,pics}){
+  let h='';for(let i=0;i<4;i++){const[m,...o]=r.sample(pics,3);const opts=r.shuffle([m,...o]);
+    h+=`<div class="ln spread"><span class="tp-model">${em(m.e,24)}</span><span class="arrow">➜</span>${opts.map(x=>em(x.e,22)).join('')}</div>`}
+  return{c:'Sur chaque ligne, montre puis entoure l\'image pareille à celle du cadre.',h:stack(h)}}},
+
+tampons:{l:'Peinture au doigt',lv:[0,0,0,0],lv0:2,cat:'a',fn({r}){
+  const cs=r.sample(['rouge','bleu','jaune','vert'],3);
+  const h=Array.from({length:12},()=>`<span class="tp-ring" style="border-color:${COL[r.pick(cs)]}"></span>`).join('');
+  return{c:'Trempe ton doigt dans la peinture et remplis chaque rond de petits points, de la même couleur que le bord.',h:`<div class="tp-rings">${h}</div>`}}},
+
+trace:{l:'Je trace',lv:[0,0,0,0],lv0:2,cat:'l',fn({r}){
+  const D='stroke="#1f2433" stroke-width="1.4" stroke-dasharray="2.6 2.2" stroke-linecap="round" fill="none"',P='stroke="#1f2433" stroke-width="1.8" fill="none"';
+  const v=r.int(0,2);let svg,c;
+  if(v==0){svg=`<circle cx="50" cy="60" r="20" ${P}/><circle cx="43" cy="56" r="2" fill="#1f2433"/><circle cx="57" cy="56" r="2" fill="#1f2433"/><path d="M41 66 Q50 74 59 66" ${P}/>`;
+    for(let i=0;i<12;i++){const a=i*Math.PI/6;svg+=`<line x1="${(50+26*Math.cos(a)).toFixed(1)}" y1="${(60+26*Math.sin(a)).toFixed(1)}" x2="${(50+44*Math.cos(a)).toFixed(1)}" y2="${(60+44*Math.sin(a)).toFixed(1)}" ${D}/>`}
+    c='Repasse sur les pointillés pour dessiner les rayons du soleil.'}
+  else if(v==1){svg=`<path d="M18 36 A12 12 0 0 1 32 20 A18 18 0 0 1 66 18 A13 13 0 0 1 84 36 Z" ${P}/>`;
+    for(let x=24;x<=78;x+=9)for(let k=0;k<3;k++){const y=46+k*22,xx=x+(k%2?4:0);svg+=`<line x1="${xx}" y1="${y}" x2="${xx}" y2="${y+12}" ${D}/>`}
+    c='Fais tomber la pluie : repasse sur les pointillés, de haut en bas.'}
+  else{const B=[[22,26,'#e53935'],[50,18,'#1e88e5'],[78,26,'#fdd835']];
+    svg=B.map(([x,y,col])=>`<ellipse cx="${x}" cy="${y}" rx="12" ry="15" fill="${col}" fill-opacity=".25" ${P}/><path d="M${x} ${y+15} Q${x+(50-x)*.3+6} ${y+50} 50 104" ${D}/>`).join('')+`<circle cx="50" cy="106" r="3" fill="#1f2433"/>`;
+    c='Repasse sur les pointillés pour attacher les ficelles des ballons.'}
+  return{c,h:`<div class="svgc"><svg viewBox="0 0 100 116" style="height:190mm;width:auto;max-width:100%">${svg}</svg></div>`}}},
 };
 
 /* ---------- Programme de 150 fiches ---------- */
@@ -678,7 +751,7 @@ const theme=()=>TH[state.tid],ageO=()=>AGES.find(a=>a.id===state.age);
 function buildSchedule(){
   const lvl=ageO().lvl,tid=state.tid,r=new Rng(hash(`${tid}|${state.age}|${state.series}|plan`));
   const pool=[];
-  for(const k in G){let w=G[k].lv[lvl-1];if(!w)continue;
+  for(const k in G){let w=lvl?G[k].lv[lvl-1]:(G[k].lv0||0);if(!w)continue;
     if(tid=='lettres'){if(G[k].cat=='l')w*=2;if(G[k].cat=='m')w=Math.max(1,Math.round(w/2))}
     if(tid=='chiffres'){if(G[k].cat=='m')w*=2;if(G[k].cat=='l')w=Math.max(1,Math.round(w/2))}
     if(k=='alphabet'&&tid=='lettres')w+=2;
@@ -694,7 +767,7 @@ function build(a){
   const own=new Set(t.words.concat(t.pics).map(x=>x.w));
   const others=[];for(const k in TH)if(k!==t.id&&k!=='chiffres')for(const x of TH[k].pics)if(!own.has(x.w))others.push(x);
   const ctx={r:new Rng(a.seed),lvl,tid:t.id,theme:t,pics:t.pics,words:t.words,cnt:t.cnt,others};
-  let out;try{out=G[a.type].fn(ctx)}catch(e){console.error(a.type,e);out=G.labyrinthe.fn({...ctx,r:new Rng(a.seed)})}
+  let out;try{out=G[a.type].fn(ctx)}catch(e){console.error(a.type,e);out=G[lvl?'labyrinthe':'imagier'].fn({...ctx,r:new Rng(a.seed)})}
   out.l=G[a.type].l;cache.set(a.i,out);return out;
 }
 function sheetHTML(a){
